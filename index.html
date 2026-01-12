@@ -1,709 +1,901 @@
-<!doctype html>
-<html lang="tr">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Garage Society // Terminal Chat</title>
 
-  <style>
-    :root{
-      --bg:#020508;
-      --panel:#06110b;
-      --panel2:#04160f;
-      --grid: rgba(0,255,120,.06);
-      --text:#a8ffcf;
-      --muted:#63cfa0;
-      --neon:#00ff7a;
-      --amber:#ffb000;
-      --danger:#ff3b6a;
-      --border: rgba(0,255,122,.25);
-      --shadow: rgba(0,255,122,.25);
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    }
+  <!doctype html>
+  <html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Garage Society // Terminal Chat</title>
 
-    html,body{height:100%;}
-    body{
-      margin:0;
-      font-family: var(--mono);
-      color: var(--text);
-      background: var(--bg);
-      overflow:hidden;
-    }
+    <style>
+      :root{
+        --bg:#020508;
+        --panel:#06110b;
+        --panel2:#04160f;
+        --grid: rgba(0,255,120,.06);
+        --text:#a8ffcf;
+        --muted:#63cfa0;
+        --neon:#00ff7a;
+        --amber:#ffb000;
+        --danger:#ff3b6a;
+        --border: rgba(0,255,122,.25);
+        --shadow: rgba(0,255,122,.25);
+        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      }
 
-    body::before{
-      content:"";
-      position:fixed; inset:0;
-      background:
-        linear-gradient(var(--grid) 1px, transparent 1px) 0 0/32px 32px,
-        linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/32px 32px;
-      pointer-events:none;
-      opacity:.6;
-    }
+      html,body{height:100%;}
+      body{
+        margin:0;
+        font-family: var(--mono);
+        color: var(--text);
+        background: var(--bg);
+        overflow:hidden;
+      }
 
-    body::after{
-      content:"";
-      position:fixed; inset:0;
-      background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,.25) 50%);
-      background-size: 100% 3px;
-      pointer-events:none;
-      mix-blend-mode: multiply;
-      opacity:.25;
-    }
+      body::before{
+        content:"";
+        position:fixed; inset:0;
+        background:
+          linear-gradient(var(--grid) 1px, transparent 1px) 0 0/32px 32px,
+          linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/32px 32px;
+        pointer-events:none;
+        opacity:.6;
+      }
 
-    .wrap{
-      position:relative;
-      height:100%;
-      display:grid;
-      grid-template-columns: 320px 1fr;
-      gap:14px;
-      padding:14px;
-      box-sizing:border-box;
-    }
+      body::after{
+        content:"";
+        position:fixed; inset:0;
+        background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,.25) 50%);
+        background-size: 100% 3px;
+        pointer-events:none;
+        mix-blend-mode: multiply;
+        opacity:.25;
+      }
 
-    .panel{
-      background: linear-gradient(180deg, rgba(0,255,122,.05), transparent 40%), var(--panel);
-      border:1px solid var(--border);
-      box-shadow: 0 0 30px var(--shadow);
-      border-radius: 10px;
-      overflow:hidden;
-    }
+      .wrap{
+        position:relative;
+        height:100%;
+        display:grid;
+        grid-template-columns: minmax(280px, 4fr) minmax(0, 5fr);
+        gap:14px;
+        padding:14px;
+        box-sizing:border-box;
+        max-width: min(100%, 1350px);
+        margin:0 auto;
+      }
 
-    .left{ display:flex; flex-direction:column; }
+      .panel{
+        background: linear-gradient(180deg, rgba(0,255,122,.05), transparent 40%), var(--panel);
+        border:1px solid var(--border);
+        box-shadow: 0 0 30px var(--shadow);
+        border-radius: 10px;
+        overflow:hidden;
+      }
 
-    .hdr{
-      padding:12px 14px;
-      border-bottom:1px solid rgba(0,255,122,.18);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-    }
+      .left{ display:flex; flex-direction:column; }
 
-    .title{ display:flex; flex-direction:column; gap:4px; }
+      .hdr{
+        padding:12px 14px;
+        border-bottom:1px solid rgba(0,255,122,.18);
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+      }
 
-    .title .big{
-      font-weight:800;
-      letter-spacing:.12em;
-      color:var(--neon);
-      font-size:14px;
-    }
+      .title{ display:flex; flex-direction:column; gap:4px; }
 
-    .title .small{
-      color:var(--muted);
-      font-size:12px;
-      opacity:.9;
-    }
+      .title .big{
+        font-weight:800;
+        letter-spacing:.12em;
+        color:var(--neon);
+        font-size:14px;
+      }
 
-    .badge{
-      font-size:11px;
-      color: #001a0d;
-      background: var(--neon);
-      padding:4px 8px;
-      border-radius: 999px;
-      font-weight:800;
-      letter-spacing:.08em;
-      user-select:none;
-    }
+      .title .small{
+        color:var(--muted);
+        font-size:12px;
+        opacity:.9;
+      }
 
-    .section{
-      padding:12px 14px;
-      border-bottom:1px dashed rgba(0,255,122,.15);
-    }
+      .badge{
+        font-size:11px;
+        color: #001a0d;
+        background: var(--neon);
+        padding:4px 8px;
+        border-radius: 999px;
+        font-weight:800;
+        letter-spacing:.08em;
+        user-select:none;
+      }
 
-    label{
-      display:block;
-      font-size:11px;
-      color:var(--muted);
-      margin-bottom:6px;
-      letter-spacing:.08em;
-    }
+      .section{
+        padding:10px 12px;
+        border-bottom:1px dashed rgba(0,255,122,.15);
+      }
 
-    input{
-      width:100%;
-      box-sizing:border-box;
-      background: rgba(0,0,0,.35);
-      border:1px solid rgba(0,255,122,.22);
-      color: var(--text);
-      padding:10px 10px;
-      border-radius: 8px;
-      outline:none;
-      font-family: var(--mono);
-    }
-    input:focus{
-      border-color: var(--neon);
-      box-shadow: 0 0 14px rgba(0,255,122,.25);
-    }
+      label{
+        display:block;
+        font-size:11px;
+        color:var(--muted);
+        margin-bottom:6px;
+        letter-spacing:.08em;
+      }
 
-    /* Disabled input looks "locked" */
-    input:disabled{
-      opacity:.7;
-      cursor:not-allowed;
-      border-color: rgba(255,176,0,.35);
-      box-shadow:none;
-    }
+      input{
+        width:100%;
+        box-sizing:border-box;
+        background: rgba(0,0,0,.35);
+        border:1px solid rgba(0,255,122,.22);
+        color: var(--text);
+        padding:8px 10px;
+        border-radius: 7px;
+        outline:none;
+        font-family: var(--mono);
+      }
+      input:focus{
+        border-color: var(--neon);
+        box-shadow: 0 0 14px rgba(0,255,122,.25);
+      }
 
-    .hint{
-      margin-top:8px;
-      font-size:11px;
-      color:rgba(168,255,207,.7);
-      line-height:1.35;
-    }
+      input:disabled{
+        opacity:.7;
+        cursor:not-allowed;
+        border-color: rgba(255,176,0,.35);
+        box-shadow:none;
+      }
 
-    .sysbox{
-      padding:12px 14px;
-      font-size:12px;
-      color:rgba(168,255,207,.8);
-      flex:1;
-      overflow:auto;
-      white-space:pre-wrap;
-    }
+      .sysbox{
+        padding:12px 14px;
+        font-size:12px;
+        color:rgba(168,255,207,.8);
+        flex:1;
+        overflow:auto;
+        white-space:pre-wrap;
+      }
 
-    .sysbox b{ color: var(--amber); font-weight:800; }
+      .sysbox b{ color: var(--amber); font-weight:800; }
 
-    .main{ display:flex; flex-direction:column; min-width:0; }
+      .main{ display:flex; flex-direction:column; min-width:0; }
 
-    .feed{
-      flex:1;
-      background: linear-gradient(180deg, rgba(0,255,122,.03), transparent 35%), var(--panel2);
-      border:1px solid var(--border);
-      box-shadow: 0 0 30px var(--shadow);
-      border-radius: 10px;
-      overflow:hidden;
-      display:flex;
-      flex-direction:column;
-    }
+      .feed{
+        flex:1;
+        background: linear-gradient(180deg, rgba(0,255,122,.03), transparent 35%), var(--panel2);
+        border:1px solid var(--border);
+        box-shadow: 0 0 30px var(--shadow);
+        border-radius: 10px;
+        overflow:hidden;
+        display:flex;
+        flex-direction:column;
+      }
 
-    .feedHdr{
-      padding:10px 12px;
-      border-bottom:1px solid rgba(0,255,122,.18);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      font-size:12px;
-      color:rgba(168,255,207,.85);
-    }
-    .statusDot{color:var(--danger);}
-    .statusDot.on{color:var(--neon);}
+      .feedHdr{
+        padding:10px 12px;
+        border-bottom:1px solid rgba(0,255,122,.18);
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+        font-size:12px;
+        color:rgba(168,255,207,.85);
+      }
+      .statusDot{color:var(--danger);}
+      .statusDot.on{color:var(--neon);}
 
-    #log{
-      flex:1;
-      margin:0;
-      padding:12px;
-      overflow:auto;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-    }
+      #log{
+        flex:1;
+        margin:0;
+        padding:12px;
+        overflow:auto;
+        display:flex;
+        flex-direction:column;
+        gap:8px;
+      }
 
-    .msg{
-      display:flex;
-      flex-direction:column;
-      max-width:75%;
-      animation: fadeIn .2s ease;
-    }
+      .msg{
+        display:flex;
+        flex-direction:column;
+        max-width:75%;
+        animation: fadeIn .2s ease;
+      }
 
-    .msg.other{ align-self:flex-start; }
-    .msg.me{ align-self:flex-end; }
+      .msg.other{ align-self:flex-start; }
+      .msg.me{ align-self:flex-end; }
 
-    .msg .sender{
-      font-size:10px;
-      color:var(--muted);
-      margin-bottom:4px;
-      letter-spacing:.05em;
-    }
+      .msg .sender{
+        font-size:10px;
+        color:var(--muted);
+        margin-bottom:4px;
+        letter-spacing:.05em;
+      }
 
-    .msg .bubble{
-      padding:8px 12px;
-      border-radius:12px;
-      line-height:1.4;
-      font-size:12px;
-      word-wrap:break-word;
-      box-shadow: 0 2px 8px rgba(0,0,0,.2);
-    }
+      .msg .bubble{
+        padding:8px 12px;
+        border-radius:12px;
+        line-height:1.4;
+        font-size:12px;
+        word-wrap:break-word;
+        box-shadow: 0 2px 8px rgba(0,0,0,.2);
+      }
 
-    .msg.other .bubble{
-      background: linear-gradient(135deg, rgba(0,255,122,.15), rgba(0,255,122,.08));
-      border:1px solid rgba(0,255,122,.25);
-      color:var(--text);
-      border-radius:12px 12px 12px 2px;
-    }
+      .msg.other .bubble{
+        background: linear-gradient(135deg, rgba(0,255,122,.15), rgba(0,255,122,.08));
+        border:1px solid rgba(0,255,122,.25);
+        color:var(--text);
+        border-radius:12px 12px 12px 2px;
+      }
 
-    .msg.me .bubble{
-      background: linear-gradient(135deg, rgba(255,176,0,.2), rgba(255,176,0,.1));
-      border:1px solid rgba(255,176,0,.3);
-      color:var(--text);
-      border-radius:12px 12px 2px 12px;
-    }
+      .msg.me .bubble{
+        background: linear-gradient(135deg, rgba(255,176,0,.2), rgba(255,176,0,.1));
+        border:1px solid rgba(255,176,0,.3);
+        color:var(--text);
+        border-radius:12px 12px 2px 12px;
+      }
 
-    .msg.sys{
-      align-self:center;
-      max-width:90%;
-    }
+      .msg.sys{
+        align-self:center;
+        max-width:90%;
+      }
 
-    .msg.sys .bubble{
-      background: rgba(0,0,0,.3);
-      border:1px solid rgba(0,255,122,.15);
-      color:var(--amber);
-      font-size:11px;
-      text-align:center;
-      border-radius:6px;
-      padding:6px 10px;
-    }
+      .msg.sys .bubble{
+        background: rgba(0,0,0,.3);
+        border:1px solid rgba(0,255,122,.15);
+        color:var(--amber);
+        font-size:11px;
+        text-align:center;
+        border-radius:6px;
+        padding:6px 10px;
+      }
 
-    @keyframes fadeIn{
-      from{ opacity:0; transform:translateY(10px); }
-      to{ opacity:1; transform:translateY(0); }
-    }
+      @keyframes fadeIn{
+        from{ opacity:0; transform:translateY(10px); }
+        to{ opacity:1; transform:translateY(0); }
+      }
 
-    .inputRow{
-      display:flex;
-      gap:10px;
-      padding:10px;
-      border-top:1px solid rgba(0,255,122,.18);
-      background: rgba(0,0,0,.25);
-    }
+      .inputRow{
+        display:flex;
+        gap:10px;
+        padding:10px;
+        border-top:1px solid rgba(0,255,122,.18);
+        background: rgba(0,0,0,.25);
+      }
 
-    button{
-      background: transparent;
-      border:1px solid rgba(0,255,122,.35);
-      color: var(--neon);
-      font-family: var(--mono);
-      padding:10px 14px;
-      border-radius: 8px;
-      cursor:pointer;
-      font-weight:800;
-      letter-spacing:.08em;
-      user-select:none;
-    }
-    button:hover{
-      box-shadow: 0 0 16px rgba(0,255,122,.25);
-      border-color: var(--neon);
-    }
+      button{
+        background: transparent;
+        border:1px solid rgba(0,255,122,.35);
+        color: var(--neon);
+        font-family: var(--mono);
+        padding:10px 14px;
+        border-radius: 8px;
+        cursor:pointer;
+        font-weight:800;
+        letter-spacing:.08em;
+        user-select:none;
+      }
+      button:hover{
+        box-shadow: 0 0 16px rgba(0,255,122,.25);
+        border-color: var(--neon);
+      }
 
-     
-    .nameRow{
-      display:flex;
-      gap:8px;
-      align-items:center;
-    }
-    .nameBtn{
-      width:120px;
-      padding:10px 10px;
-      border-radius:8px;
-      border:1px solid rgba(255,176,0,.35);
-      color: var(--amber);
-    }
-    .nameBtn:hover{
-      border-color: var(--amber);
-      box-shadow: 0 0 14px rgba(255,176,0,.25);
-    }
+      .nameRow{
+        display:flex;
+        gap:8px;
+        align-items:center;
+      }
+      .nameBtn{
+        width:110px;
+        padding:8px 10px;
+        border-radius:7px;
+        border:1px solid rgba(255,176,0,.35);
+        color: var(--amber);
+      }
+      .nameBtn:hover{
+        border-color: var(--amber);
+        box-shadow: 0 0 14px rgba(255,176,0,.25);
+      }
 
-    .msg .fileLink{
-      display:inline-block;
-      margin-top:6px;
-      padding:6px 10px;
-      background: rgba(0,255,122,.1);
-      border:1px solid rgba(0,255,122,.3);
-      border-radius:6px;
-      color:var(--neon);
-      text-decoration:none;
-      font-size:11px;
-      transition: all .2s;
-    }
-    .msg .fileLink:hover{
-      background: rgba(0,255,122,.2);
-      box-shadow: 0 0 10px rgba(0,255,122,.3);
-    }
+      .msg .fileLink{
+        display:inline-block;
+        margin-top:6px;
+        padding:6px 10px;
+        background: rgba(0,255,122,.1);
+        border:1px solid rgba(0,255,122,.3);
+        border-radius:6px;
+        color:var(--neon);
+        text-decoration:none;
+        font-size:11px;
+        transition: all .2s;
+      }
+      .msg .fileLink:hover{
+        background: rgba(0,255,122,.2);
+        box-shadow: 0 0 10px rgba(0,255,122,.3);
+      }
 
-    .uploading{
-      color:var(--amber);
-      font-size:11px;
-      padding:4px 0;
-    }
+      .uploading{
+        color:var(--amber);
+        font-size:11px;
+        padding:4px 0;
+      }
 
-    @keyframes flicker {
-      0%, 100% {opacity: 1;}
-      50% {opacity: .92;}
-      60% {opacity: 1;}
-      70% {opacity: .95;}
-    }
-    .flicker{ animation: flicker 2.8s infinite; }
+      @keyframes flicker {
+        0%, 100% {opacity: 1;}
+        50% {opacity: .92;}
+        60% {opacity: 1;}
+        70% {opacity: .95;}
+      }
+      .flicker{ animation: flicker 2.8s infinite; }
 
-    .breach-warning{
-      margin-top:10px;
-      padding:8px;
-      background: rgba(0,0,0,.6);
-      border:1px solid var(--danger);
-      color: var(--danger);
-      text-align:center;
-      font-size:64px;
-      font-weight:800;
-      letter-spacing:.15em;
-      animation: breachPulse 2s ease-in-out infinite;
-    }
-    .breach-warning.safe{
-      border-color: var(--neon);
-      color: var(--neon);
-    }
-    @keyframes breachPulse{
-      0%, 100% { box-shadow: 0 0 10px rgba(255,59,106,.4); opacity: .95; }
-      50% { box-shadow: 0 0 20px rgba(255,59,106,.6); opacity: 1; transform: translateX(1px); }
-      51% { transform: translateX(-1px); }
-    }
+      .breach-warning{
+        margin-top:10px;
+        padding:8px;
+        background: rgba(0,0,0,.6);
+        border:1px solid var(--danger);
+        color: var(--danger);
+        text-align:center;
+        font-size:64px;
+        font-weight:800;
+        letter-spacing:.15em;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:16px;
+        flex-wrap:wrap;
+      }
+      .breach-warning.safe{
+        border-color: var(--neon);
+        color: var(--neon);
+      }
+      .breach-warning .coords{
+        font-size:13px;
+        letter-spacing:.08em;
+        font-weight:600;
+        color:rgba(168,255,207,.85);
+      }
+      .breach-warning.safe .coords{
+        color: var(--neon);
+      }
+      @keyframes breachPulse{
+        0%, 100% { box-shadow: 0 0 10px rgba(255,59,106,.4); opacity: .95; }
+        50% { box-shadow: 0 0 20px rgba(255,59,106,.6); opacity: 1; transform: translateX(1px); }
+        51% { transform: translateX(-1px); }
+      }
 
-    .fileSection{
-      padding:12px 14px;
-      border-bottom:1px dashed rgba(0,255,122,.15);
-    }
+      .fileSection{
+        padding:10px 12px;
+        border-bottom:1px dashed rgba(0,255,122,.15);
+      }
 
-    .fileUploadBtn{
-      width:100%;
-      background: rgba(0,255,122,.08);
-      border:2px dashed rgba(0,255,122,.3);
-      color: var(--neon);
-      font-family: var(--mono);
-      padding:20px 14px;
-      border-radius: 8px;
-      cursor:pointer;
-      font-weight:600;
-      letter-spacing:.08em;
-      user-select:none;
-      position:relative;
-      transition: all .3s;
-      text-align:center;
-    }
-    .fileUploadBtn:hover{
-      background: rgba(0,255,122,.12);
-      border-color: var(--neon);
-      box-shadow: 0 0 16px rgba(0,255,122,.25);
-    }
-    .fileUploadBtn input[type="file"]{
-      position:absolute;
-      opacity:0;
-      cursor:pointer;
-      inset:0;
-      width:100%;
-      padding:0;
-    }
-    .filePreview{
-      margin-top:8px;
-      font-size:10px;
-      color:var(--muted);
-      text-align:center;
-      padding:6px;
-      background:rgba(0,0,0,.3);
-      border-radius:4px;
-      display:none;
-    }
-    .filePreview.show{ display:block; }
-  </style>
-</head>
+      .fileUploadBtn{
+        width:100%;
+        background: rgba(0,255,122,.08);
+        border:2px dashed rgba(0,255,122,.3);
+        color: var(--neon);
+        font-family: var(--mono);
+        padding:14px 12px;
+        border-radius: 7px;
+        cursor:pointer;
+        font-weight:600;
+        letter-spacing:.08em;
+        user-select:none;
+        position:relative;
+        transition: all .3s;
+        text-align:center;
+      }
+      .fileUploadBtn:hover{
+        background: rgba(0,255,122,.12);
+        border-color: var(--neon);
+        box-shadow: 0 0 16px rgba(0,255,122,.25);
+      }
+      .fileUploadBtn input[type="file"]{
+        position:absolute;
+        opacity:0;
+        cursor:pointer;
+        inset:0;
+        width:100%;
+        padding:0;
+      }
+      .filePreview{
+        margin-top:8px;
+        font-size:10px;
+        color:var(--muted);
+        text-align:center;
+        padding:6px;
+        background:rgba(0,0,0,.3);
+        border-radius:4px;
+        display:none;
+      }
+      .filePreview.show{ display:block; }
 
-<body>
-  <div class="wrap">
-    <div class="panel left">
-      <div class="hdr">
-        <div class="title">
-          <div class="big flicker">GARAGE // SOCIETY</div>
-          <div class="small">Secure Channel • 2 Nodes Max</div>
-        </div>
-        <div class="badge">LIVE</div>
+      #loginOverlay{
+        position:fixed;
+        inset:0;
+        z-index:9999;
+        background:rgba(2,5,8,.92);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+      }
+      #loginOverlay.hidden{ display:none; }
+      #loginOverlay .login-card{
+        width:min(420px, 92vw);
+        background:rgba(6,17,11,.95);
+        border:1px solid rgba(0,255,122,.25);
+        border-radius:12px;
+        box-shadow:0 0 30px rgba(0,255,122,.25);
+        padding:16px;
+      }
+      #loginOverlay .login-title{
+        font-weight:800;
+        letter-spacing:.12em;
+        color:var(--neon);
+        margin-bottom:10px;
+      }
+      #loginOverlay label{
+        display:block;
+        font-size:11px;
+        color:rgba(99,207,160,.9);
+        margin-bottom:6px;
+        letter-spacing:.08em;
+      }
+      #loginOverlay input{
+        width:100%;
+        box-sizing:border-box;
+        margin-bottom:12px;
+      }
+      #loginOverlay button{
+        width:100%;
+      }
+      #loginErr{
+        margin-top:10px;
+        color:var(--amber);
+        font-size:12px;
+        min-height:16px;
+      }
+
+      @media (max-width: 900px){
+        body{
+          overflow:auto;
+        }
+        .wrap{
+          grid-template-columns: 1fr;
+          grid-template-rows: auto auto;
+          height:auto;
+          min-height:100vh;
+          padding:12px;
+        }
+        .panel.left{
+          min-height:auto;
+        }
+        .main{
+          min-height:60vh;
+        }
+        .feed{
+          min-height:360px;
+        }
+        #log{
+          max-height:50vh;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="loginOverlay">
+      <div class="login-card">
+        <div class="login-title">GARAGE // ACCESS</div>
+
+        <label for="loginUser">USERNAME</label>
+        <input id="loginUser" placeholder="your callsign" />
+
+        <label for="loginPass">ENTER PASSWORD</label>
+        <input id="loginPass" type="password" placeholder="enter password" />
+
+        <button id="loginBtn">ENTER</button>
+
+        <div id="loginErr"></div>
       </div>
-
-      <div class="section">
-        <label>CALLSIGN</label>
-        <div class="nameRow">
-          <input id="name" placeholder="Enter your callsign" />
-          <button class="nameBtn" id="nameBtn" onclick="toggleNameEdit()">LOCK</button>
-        </div>
-        
-      </div>
-
-      <div class="section">
-        <label>MESSAGE</label>
-        <input id="m" placeholder="Type your message..." />
-        
-      </div>
-
-      <div class="fileSection">
-        <label>FILE UPLOAD</label>
-        <div class="fileUploadBtn">
-            SELECT FILE
-          <input type="file" id="fileSidebar" onchange="handleFileSelect()">
-        </div>
-        <div class="filePreview" id="filePreview"></div>
-      </div>
-
-      <div class="sysbox" id="hud"><b>SYS</b> Booting modules…
-- WS tunnel: pending
-- Node limit: 2</div>
-
-      <div class="breach-warning" id="breach">☠</div>
     </div>
 
-    <div class="main">
-      <div class="feed">
-        <div class="feedHdr">
-          <div>CHANNEL: <span class="flicker">/ws</span></div>
-          <div><span id="dot" class="statusDot">●</span> <span id="st">OFFLINE</span></div>
+    <div class="wrap">
+      <div class="panel left">
+        <div class="hdr">
+          <div class="title">
+            <div class="big flicker">GARAGE // SOCIETY</div>
+            <div class="small">Secure Channel • 10 Nodes Max</div>
+          </div>
+          <div class="badge">LIVE</div>
         </div>
 
-        <div id="log"></div>
+        <div class="section">
+          <label>CALLSIGN</label>
+          <div class="nameRow">
+            <input id="name" placeholder="Enter your callsign" />
+            <button class="nameBtn" id="nameBtn" onclick="toggleNameEdit()">LOCK</button>
+          </div>
+        </div>
 
-        <div class="inputRow">
-          <button onclick="send()">TRANSMIT</button>
-          <button onclick="clearLog()">CLEAR</button>
+        <div class="section">
+          <label>MESSAGE</label>
+          <input id="m" placeholder="Type your message..." />
+        </div>
+
+        <div class="fileSection">
+          <label>FILE UPLOAD</label>
+          <div class="fileUploadBtn">
+              SELECT FILE
+            <input type="file" id="fileSidebar" onchange="handleFileSelect()">
+          </div>
+          <div class="filePreview" id="filePreview"></div>
+        </div>
+
+          <div class="sysbox" id="hud"><b>SYS</b> Booting modules…
+        - WS tunnel: pending
+        - Node limit: 10</div>
+
+        <div class="breach-warning" id="breach">
+          <span class="skull">☠</span>
+          <span class="coords">40.8887572, 29.2227932</span>
+          <span class="skull">☠</span>
+        </div>
+      </div>
+
+      <div class="main">
+        <div class="feed">
+          <div class="feedHdr">
+            <div>CHANNEL: <span class="flicker">/garage-society/ws</span></div>
+            <div><span id="dot" class="statusDot">●</span> <span id="st">OFFLINE</span></div>
+          </div>
+
+          <div id="log"></div>
+
+          <div class="inputRow">
+            <button onclick="send()">TRANSMIT</button>
+            <button onclick="clearLog()">CLEAR</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <script>
-    const logEl = document.getElementById("log");
-    const hudEl = document.getElementById("hud");
-    const mEl = document.getElementById("m");
-    const nameEl = document.getElementById("name");
-    const nameBtn = document.getElementById("nameBtn");
-    const dot = document.getElementById("dot");
-    const st = document.getElementById("st");
+    <script>
+      const logEl = document.getElementById("log");
+      const hudEl = document.getElementById("hud");
+      const mEl = document.getElementById("m");
+      const nameEl = document.getElementById("name");
+      const nameBtn = document.getElementById("nameBtn");
+      const dot = document.getElementById("dot");
+      const st = document.getElementById("st");
+      const loginOverlay = document.getElementById("loginOverlay");
+      const loginUserEl = document.getElementById("loginUser");
+      const loginPassEl = document.getElementById("loginPass");
+      const loginBtn = document.getElementById("loginBtn");
+      const loginErrEl = document.getElementById("loginErr");
 
-    let ws = null;
-    let myName = "";
-    let selectedFile = null;
+      let ws = null;
+      let myName = "";
+      let selectedFile = null;
+      let authUser = "";
+      let authPass = "";
+      let authenticated = false;
 
-   
-    const NAME_KEY = "garage_chat_name";
-    let nameLocked = true;
+      const NAME_KEY = "garage_chat_name";
+      let nameLocked = true;
 
-    function loadSavedName(){
-      const saved = localStorage.getItem(NAME_KEY);
-      if (saved && saved.trim()) return saved.trim();
-      return "";
-    }
-
-    function saveName(n){
-      localStorage.setItem(NAME_KEY, n);
-    }
-
-    function applyNameLock(locked){
-      nameLocked = locked;
-      nameEl.disabled = locked;
-
-    
-      if (locked){
-        nameBtn.textContent = "EDIT";
-      } else {
-        nameBtn.textContent = "SAVE & RECONNECT";
+      function showOverlay(message = ""){
+        loginErrEl.textContent = message;
+        loginOverlay.classList.remove("hidden");
       }
-    }
 
- 
-    function toggleNameEdit(){
-      if (nameLocked){
-       
-        applyNameLock(false);
-        nameEl.focus();
-        nameEl.select();
-      } else {
-      
-        const n = (nameEl.value || "").trim();
-        const finalName = n ? n : "unknown";
-        nameEl.value = finalName;
-        saveName(finalName);
-        applyNameLock(true);
-        connect(); 
+      function hideOverlay(){
+        loginErrEl.textContent = "";
+        loginOverlay.classList.add("hidden");
       }
-    }
 
-    function handleFileSelect(){
-      const input = document.getElementById('fileSidebar');
-      const preview = document.getElementById('filePreview');
-      const transmitBtn = document.querySelector('.inputRow button:first-child');
-      selectedFile = input.files[0];
+      function loadSavedName(){
+        const saved = localStorage.getItem(NAME_KEY);
+        if (saved && saved.trim()) return saved.trim();
+        return "";
+      }
 
-      if(selectedFile){
-        preview.textContent = '✓ ' + selectedFile.name + ' (' + formatBytes(selectedFile.size) + ')';
-        preview.classList.add('show');
+      function saveName(n){
+        localStorage.setItem(NAME_KEY, n);
+      }
+
+      function applyNameLock(locked){
+        nameLocked = locked;
+        nameEl.disabled = locked;
+
+        if (locked){
+          nameBtn.textContent = "EDIT";
+        } else {
+          nameBtn.textContent = "SAVE & RECONNECT";
+        }
+      }
+
+      function toggleNameEdit(){
+        if (nameLocked){
+          applyNameLock(false);
+          nameEl.focus();
+          nameEl.select();
+        } else {
+          const n = (nameEl.value || "").trim();
+          const finalName = n ? n : "unknown";
+          nameEl.value = finalName;
+          saveName(finalName);
+          authUser = finalName;
+          myName = finalName;
+          applyNameLock(true);
+          connect();
+        }
+      }
+
+      function handleFileSelect(){
+        const input = document.getElementById('fileSidebar');
+        const preview = document.getElementById('filePreview');
+        const transmitBtn = document.querySelector('.inputRow button:first-child');
+        selectedFile = input.files[0];
+
+        if(selectedFile){
+          preview.textContent = '✓ ' + selectedFile.name + ' (' + formatBytes(selectedFile.size) + ')';
+          preview.classList.add('show');
           transmitBtn.textContent = 'SEND FILE';
-      } else {
-        preview.classList.remove('show');
-        transmitBtn.textContent = 'TRANSMIT';
-      }
-    }
-
-    function addMsg(sender, text, type="other", fileData=null){
-      const msg = document.createElement("div");
-      msg.className = 'msg ' + type;
-
-      if(type !== "sys"){
-        const senderEl = document.createElement("div");
-        senderEl.className = "sender";
-        senderEl.textContent = sender;
-        msg.appendChild(senderEl);
+        } else {
+          preview.classList.remove('show');
+          transmitBtn.textContent = 'TRANSMIT';
+        }
       }
 
-      const bubble = document.createElement("div");
-      bubble.className = "bubble";
-      bubble.textContent = text;
+      function addMsg(sender, text, type="other", fileData=null){
+        const msg = document.createElement("div");
+        msg.className = 'msg ' + type;
 
-      if(fileData){
-        const link = document.createElement("a");
-        link.className = "fileLink";
-        link.href = fileData.url;
-        link.target = "_blank";
-          link.textContent = fileData.filename + ' (' + formatBytes(fileData.size) + ')';
-        bubble.appendChild(document.createElement("br"));
-        bubble.appendChild(link);
-      }
-
-      msg.appendChild(bubble);
-      logEl.appendChild(msg);
-      logEl.scrollTop = logEl.scrollHeight;
-    }
-
-    function formatBytes(bytes){
-      if(bytes < 1024) return bytes + ' B';
-      if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
-      return (bytes/(1024*1024)).toFixed(1) + ' MB';
-    }
-
-    function sys(text){ addMsg("", text, "sys"); }
-
-    function setStatus(on){
-      dot.classList.toggle("on", on);
-      st.textContent = on ? "ONLINE" : "OFFLINE";
-      const breachEl = document.getElementById('breach');
-      if(breachEl) breachEl.classList.toggle('safe', on);
-
-      hudEl.textContent =
-        'SYS Booting modules…\n' +
-        '- WS tunnel: ' + (on ? 'OK' : 'DOWN') + '\n' +
-        '- Node limit: 2';
-    }
-
-    function connect(){
-      const n = (nameEl.value || "unknown").trim() || "unknown";
-      myName = n;
-
-      if (ws) try{ ws.close(); }catch(e){}
-
-      const wsUrl = 'ws://' + location.hostname + ':' + location.port + '/ws?name=' + encodeURIComponent(n);
-      ws = new WebSocket(wsUrl);
-
-      ws.onopen = () => { setStatus(true); sys('connected as ' + n); };
-      ws.onclose = () => { setStatus(false); sys("disconnected"); };
-      ws.onerror = () => { sys("ws error - check connection"); };
-
-      ws.onmessage = (e) => {
-        
-        try{
-          const msgData = JSON.parse(e.data);
-          if(msgData && msgData.type === 'file'){
-            const sender = msgData.sender || 'unknown';
-            const t = sender === myName ? "me" : "other";
-            addMsg(sender, msgData.text || "📎 File", t, {url:msgData.url, filename:msgData.filename, size:msgData.size});
-            return;
-          }
-        } catch(err){
-          
+        if(type !== "sys"){
+          const senderEl = document.createElement("div");
+          senderEl.className = "sender";
+          senderEl.textContent = sender;
+          msg.appendChild(senderEl);
         }
 
-        const msg = e.data;
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+        bubble.textContent = text;
 
-        if (msg.startsWith("[SYS]")) {
-          addMsg("", msg, "sys");
+        if(fileData){
+          const link = document.createElement("a");
+          link.className = "fileLink";
+          link.href = fileData.url;
+          link.target = "_blank";
+          link.textContent = fileData.filename + ' (' + formatBytes(fileData.size) + ')';
+          bubble.appendChild(document.createElement("br"));
+          bubble.appendChild(link);
+        }
+
+        msg.appendChild(bubble);
+        logEl.appendChild(msg);
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      function formatBytes(bytes){
+        if(bytes < 1024) return bytes + ' B';
+        if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+        return (bytes/(1024*1024)).toFixed(1) + ' MB';
+      }
+
+      function sys(text){ addMsg("", text, "sys"); }
+
+      function setStatus(on){
+        dot.classList.toggle("on", on);
+        st.textContent = on ? "ONLINE" : "OFFLINE";
+        const breachEl = document.getElementById('breach');
+        if(breachEl) breachEl.classList.toggle('safe', on);
+
+        hudEl.textContent =
+          'SYS Booting modules…\n' +
+          '- WS tunnel: ' + (on ? 'OK' : 'DOWN') + '\n' +
+          '- Node limit: 10';
+      }
+
+      // ✅ Updated: proper ws/wss + correct path under /garage-society
+      function connect(){
+        if (!authUser || !authPass){
+          showOverlay("Authentication required.");
           return;
         }
 
-        const match = msg.match(/^\[(.*?)\]\s*(.*)$/);
-        if(match){
-          const sender = match[1];
-          const text = match[2];
-          const type = sender === myName ? "me" : "other";
-          addMsg(sender, text, type);
-        } else {
-          addMsg("unknown", msg, "other");
+        myName = authUser;
+        nameEl.value = authUser;
+
+        if (ws) {
+          try{ ws.close(); }catch(e){}
         }
-      };
-    }
 
-    async function send(){
-      if (!ws || ws.readyState !== WebSocket.OPEN) return sys("ws not open");
+        const proto = location.protocol === "https:" ? "wss:" : "ws:";
+        const wsUrl = proto + "//" + location.host + "/garage-society/ws?name=" + encodeURIComponent(authUser);
+        ws = new WebSocket(wsUrl);
 
-      if(selectedFile){
-        await uploadFileFromSidebar();
-        return;
-      }
+        ws.onopen = () => {
+          authenticated = true;
+          setStatus(true);
+          sys('authenticated as ' + authUser);
+          saveName(authUser);
+          applyNameLock(true);
+          hideOverlay();
 
-      const text = mEl.value.trim();
-      if (!text) return;
+          try{
+            ws.send(JSON.stringify({
+              type: 'auth',
+              username: authUser,
+              password: authPass
+            }));
+          } catch(err){}
+        };
 
-     
-      addMsg(myName, text, "me");
+        ws.onclose = (event) => {
+          authenticated = false;
+          setStatus(false);
+          sys("disconnected");
+          const msg = event && event.wasClean ? "Session ended." : "Connection lost.";
+          showOverlay(msg);
+        };
 
-      ws.send(text);
-      mEl.value = "";
-    }
+        ws.onerror = () => { sys("ws error - check connection"); };
 
-    async function uploadFileFromSidebar(){
-      if(!selectedFile) return;
+        ws.onmessage = (e) => {
+          const msg = e.data;
 
-      const uploadMsg = document.createElement('div');
-      uploadMsg.className = 'uploading';
-      uploadMsg.textContent = 'Uploading ' + selectedFile.name + '...';
-      logEl.appendChild(uploadMsg);
-
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-
-      try{
-        const res = await fetch('/upload', { method: 'POST', body: formData });
-        const data = await res.json();
-
-        uploadMsg.remove();
-
-        if(data.ok){
-            const msg = 'File: ' + selectedFile.name;
-
-          if(ws && ws.readyState === WebSocket.OPEN){
-            ws.send(JSON.stringify({type:'file', url:data.url, filename:data.filename, size:data.size, text:msg}));
+          if (msg.startsWith("[SYS] AUTH_FAIL")) {
+            authenticated = false;
+            setStatus(false);
+            showOverlay(msg.replace("[SYS]", "").trim() || "Authentication failed.");
+            return;
           }
 
-          addMsg(myName, msg, 'me', {url:data.url, filename:data.filename, size:data.size});
+          if (msg.startsWith("[SYS] AUTH_OK")) {
+            if (!authenticated){
+              authenticated = true;
+              setStatus(true);
+              sys('authenticated as ' + authUser);
+              hideOverlay();
+            }
+            return;
+          }
 
-          const transmitBtn = document.querySelector('.inputRow button:first-child');
-          document.getElementById('fileSidebar').value = '';
-          document.getElementById('filePreview').classList.remove('show');
-          transmitBtn.textContent = 'TRANSMIT';
-          selectedFile = null;
-        } else {
-          sys('Upload failed: ' + data.error);
-        }
-      } catch(e){
-        uploadMsg.remove();
-        sys('Upload error: ' + e.message);
+          if (msg.startsWith("[SYS]")) {
+            addMsg("", msg, "sys");
+            return;
+          }
+
+          try{
+            const msgData = JSON.parse(e.data);
+            if(msgData && msgData.type === 'file'){
+              const sender = msgData.sender || 'unknown';
+              const t = sender === authUser ? "me" : "other";
+              addMsg(sender, msgData.text || "📎 File", t, {url:msgData.url, filename:msgData.filename, size:msgData.size});
+              return;
+            }
+          } catch(err){
+            // not JSON -> continue
+          }
+
+          const match = msg.match(/^\[(.*?)\]\s*(.*)$/);
+          if(match){
+            const sender = match[1];
+            const text = match[2];
+            const type = sender === authUser ? "me" : "other";
+            addMsg(sender, text, type);
+          } else {
+            addMsg("unknown", msg, "other");
+          }
+        };
       }
-    }
 
-    function clearLog(){ logEl.innerHTML = ""; }
+      async function send(){
+        if (!ws || ws.readyState !== WebSocket.OPEN) return sys("ws not open");
+        if (!authenticated){
+          showOverlay("Authentication required.");
+          return sys("login required");
+        }
 
-  
-    mEl.addEventListener("keydown", (e) => { if (e.key === "Enter") send(); });
+        if(selectedFile){
+          await uploadFileFromSidebar();
+          return;
+        }
 
-    const saved = loadSavedName();
-    if (saved) {
-      nameEl.value = saved;
-    } else {
-      nameEl.value = "unknown";
-      saveName("unknown");
-    }
+        const text = mEl.value.trim();
+        if (!text) return;
 
-   
-    applyNameLock(true);
+        addMsg(authUser, text, "me");
 
- 
-    connect();
-  </script>
-</body>
-</html>
+        ws.send(text);
+        mEl.value = "";
+      }
+
+      // ✅ Updated: upload path under /garage-society
+      async function uploadFileFromSidebar(){
+        if(!selectedFile) return;
+        if (!authenticated){
+          showOverlay("Authentication required.");
+          return;
+        }
+
+        const uploadMsg = document.createElement('div');
+        uploadMsg.className = 'uploading';
+        uploadMsg.textContent = 'Uploading ' + selectedFile.name + '...';
+        logEl.appendChild(uploadMsg);
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+
+        try{
+          const res = await fetch('/garage-society/upload', { method: 'POST', body: formData });
+          const data = await res.json();
+
+          uploadMsg.remove();
+
+          if(data.ok){
+            const msg = 'File: ' + selectedFile.name;
+
+            if(ws && ws.readyState === WebSocket.OPEN){
+              ws.send(JSON.stringify({type:'file', url:data.url, filename:data.filename, size:data.size, text:msg}));
+            }
+
+            addMsg(authUser, msg, 'me', {url:data.url, filename:data.filename, size: data.size});
+
+            const transmitBtn = document.querySelector('.inputRow button:first-child');
+            document.getElementById('fileSidebar').value = '';
+            document.getElementById('filePreview').classList.remove('show');
+            transmitBtn.textContent = 'TRANSMIT';
+            selectedFile = null;
+          } else {
+            sys('Upload failed: ' + data.error);
+          }
+        } catch(e){
+          uploadMsg.remove();
+          sys('Upload error: ' + e.message);
+        }
+      }
+
+      function clearLog(){ logEl.innerHTML = ""; }
+
+      mEl.addEventListener("keydown", (e) => { if (e.key === "Enter") send(); });
+
+      function beginLogin(){
+        const u = (loginUserEl.value || "").trim();
+        const p = (loginPassEl.value || "").trim();
+
+        if (!u){
+          loginErrEl.textContent = "Username required.";
+          loginUserEl.focus();
+          return;
+        }
+
+        if (!p){
+          loginErrEl.textContent = "Password required.";
+          loginPassEl.focus();
+          return;
+        }
+
+        authUser = u;
+        authPass = p;
+        loginErrEl.textContent = "Connecting…";
+        connect();
+      }
+
+      loginBtn.addEventListener("click", beginLogin);
+      loginPassEl.addEventListener("keydown", (e) => { if (e.key === "Enter") beginLogin(); });
+      loginUserEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter"){
+          e.preventDefault();
+          loginPassEl.focus();
+        }
+      });
+
+      const saved = loadSavedName();
+      if (saved) {
+        loginUserEl.value = saved;
+      }
+
+      applyNameLock(true);
+      nameEl.value = "";
+      showOverlay();
+    </script>
+  </body>
+  </html>
